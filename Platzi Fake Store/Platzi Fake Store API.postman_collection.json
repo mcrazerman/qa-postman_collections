@@ -1,0 +1,566 @@
+{
+  "info": {
+    "_postman_id": "78424cce-1178-4d87-9b67-52f247cf2541",
+    "name": "Platzi Fake Store API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "53575115",
+    "_collection_link": "https://go.postman.co/collection/53575115-78424cce-1178-4d87-9b67-52f247cf2541?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Positive cases",
+      "item": [
+        {
+          "name": "products",
+          "item": [
+            {
+              "name": "Create a product",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "//1. Проверяем статус код",
+                      "pm.test(\"Статус-код должен быть 201 Created\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "// 2. Проверяем время ответа сервера",
+                      "pm.test(\"Время ответа должно быть менее 800 мс\", function () {",
+                      "    pm.expect(pm.response.responseTime).to.be.below(800);",
+                      "});",
+                      "",
+                      "// 3. Валидируем структуру и данные ответа",
+                      "const responseJson = pm.response.json();",
+                      "const requestBody = JSON.parse(pm.request.body.raw);",
+                      "pm.test(\"Ответ должен содержать поле 'id'\", function () {",
+                      "    pm.expect(responseJson).to.have.property('id');",
+                      "    pm.expect(responseJson.id).to.be.a('number');",
+                      "});",
+                      "",
+                      "pm.test(\"Данные товара соответствуют отправленным\", function() {",
+                      "    pm.expect(responseJson.title).to.equal(requestBody.title);",
+                      "    pm.expect(responseJson.description).to.equal(requestBody.description);",
+                      "    pm.expect(responseJson.price).to.equal(requestBody.price);",
+                      "    pm.expect(responseJson.category.id).to.equal(requestBody.categoryId)",
+                      "    pm.expect(responseJson.images).to.eql(requestBody.images);",
+                      "});",
+                      "",
+                      "// 4. Динамическое связывание: сохраняем ID созданного товара в переменную коллекции,",
+                      "// чтобы следующий GET-запрос использовал именно его",
+                      "if (responseJson.id){",
+                      "    pm.collectionVariables.set(\"createdProductId\", responseJson.id);",
+                      "}"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"title\": \"Tennis racket\",   \n    \"price\": 30,   \n    \"description\": \"Very good\",\n    \"categoryId\": 1, \n    \"images\": [\n        \"https://placehold.co/600x400\"\n     ] \n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/products",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "products"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get a product by id",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// 2. Проверяем, что вернулся именно тот товар, который мы создали",
+                      "const responseJson = pm.response.json();",
+                      "const expectedId = pm.collectionVariables.get(\"createdProductId\");",
+                      "",
+                      "pm.test(\"Полученный ID товара совпадает с созданным ранее ID\", function () {",
+                      "    pm.expect(responseJson.id).to.eql(expectedId);",
+                      "});",
+                      "",
+                      "pm.test(\"Поля товара заполнены корректно\", function (){",
+                      "    pm.expect(responseJson.title).to.be.a(\"string\");",
+                      "    pm.expect(responseJson.price).to.be.a(\"number\");",
+                      "    pm.expect(responseJson.images).to.be.an(\"array\");",
+                      "});",
+                      "",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/products/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "products",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "{{createdProductId}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Filter products",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Статус код должен быть 200 ОК\",function(){",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/products?title=Tennis racket&price=30",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "products"
+                  ],
+                  "query": [
+                    {
+                      "key": "title",
+                      "value": "Tennis racket"
+                    },
+                    {
+                      "key": "price",
+                      "value": "30"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete a product",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// 1. Проверяем статус код",
+                      "pm.test(\"Статус код должен быть 200 ОК\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "// 2. Проверяем текст ответа",
+                      "pm.test(\"Подтверждение удаления товара\", function () {",
+                      "    pm.expect(pm.response.json()).to.eql(true);",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/products/:id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "products",
+                    ":id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "id",
+                      "value": "{{createdProductId}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Negative cases",
+      "item": [
+        {
+          "name": "products",
+          "item": [
+            {
+              "name": "Create a product with price=0",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// 1. Проверяем статус-код ответа\"",
+                      "pm.test(\"Статус код должен быть 400 Bad Request\",function(){",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "",
+                      "// 2. Валидируем текст ошибки в массиве сообщений",
+                      "const responseJson = pm.response.json();",
+                      "pm.test(\"Возвращается ошибка валидации минимальной цены\", function() {",
+                      "    pm.expect(responseJson.error).to.equal(\"Bad Request\");",
+                      "    pm.expect(responseJson.message).to.be.an(\"array\");",
+                      "    pm.expect(responseJson.message).to.include(\"price must be a positive number\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"title\": \"Wooden Stool\",   \n    \"price\": 0,   \n    \"description\": \"Very wood\",\n    \"categoryId\": 1, \n    \"images\": [\n        \"https://placehold.co/600x400\"\n     ] \n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/products",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "products"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create a product with string price",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// 1. Проверяем статус-код ответа\"",
+                      "pm.test(\"Статус код должен быть 400 Bad Request\",function(){",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "",
+                      "// 2. Валидируем текст ошибки в массиве сообщений",
+                      "const responseJson = pm.response.json();",
+                      "pm.test(\"Возвращается ошибка типа данных цены\", function() {",
+                      "    pm.expect(responseJson.error).to.equal(\"Bad Request\");",
+                      "    pm.expect(responseJson.message).to.be.an(\"array\");",
+                      "    pm.expect(responseJson.message).to.include(\"price must be a positive number\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"title\": \"Wooden Stool\",   \n    \"price\": \"one hundred\",   \n    \"description\": \"Very wood\",\n    \"categoryId\": 1, \n    \"images\": [\n        \"https://placehold.co/600x400\"\n     ] \n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/products",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "products"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create a product without title",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// 1. Проверяем статус-код ответа\"",
+                      "pm.test(\"Статус код должен быть 400 Bad Request\",function(){",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "",
+                      "// 2. Валидируем текст ошибки в массиве сообщений",
+                      "const responseJson = pm.response.json();",
+                      "pm.test(\"Возвращается ошибка пустого названия\", function() {",
+                      "    pm.expect(responseJson.error).to.equal(\"Bad Request\");",
+                      "    pm.expect(responseJson.message).to.be.an(\"array\");",
+                      "    pm.expect(responseJson.message).to.include(\"title should not be empty\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"price\": 100,   \n    \"description\": \"Very wood\",\n    \"categoryId\": 1, \n    \"images\": [\n        \"https://placehold.co/600x400\"\n     ] \n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/products",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "products"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create a product with bad img url",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// 1. Проверяем статус-код ответа\"",
+                      "pm.test(\"Статус код должен быть 400 Bad Request\",function(){",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "",
+                      "// 2. Валидируем текст ошибки в массиве сообщений",
+                      "const responseJson = pm.response.json();",
+                      "pm.test(\"Возвращается ошибка формата ссылки в массиве images\", function() {",
+                      "    pm.expect(responseJson.error).to.equal(\"Bad Request\");",
+                      "    pm.expect(responseJson.message).to.be.an(\"array\");",
+                      "    pm.expect(responseJson.message).to.include(\"each value in images must be a URL address\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"title\": \"Table tennis racket\",   \n    \"price\": 30,   \n    \"description\": \"Very good\",\n    \"categoryId\": 1, \n    \"images\": [\n        \"not-url-link\"\n     ] \n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/products",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "products"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create a product with non-existent category",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "// 1. Проверяем статус-код ответа\"",
+                      "pm.test(\"Статус код должен быть 400 Bad Request\",function(){",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "",
+                      "// 2. Валидируем текст ошибки в массиве сообщений",
+                      "const responseJson = pm.response.json();",
+                      "pm.test(\"Возвращается ошибка формата ссылки в массиве images\", function() {",
+                      "    pm.expect(responseJson.name).to.equal(\"EntityNotFoundError\");",
+                      "    pm.expect(responseJson.message).to.include(\"Could not find any entity of type \\\"Category\\\" matching:\");",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"title\": \"Table tennis racket\",   \n    \"price\": 30,   \n    \"description\": \"Very good\",\n    \"categoryId\": 999999, \n    \"images\": [\n        \"https://placehold.co/600x400\"\n     ] \n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/products",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "products"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://api.escuelajs.co/api/v1"
+    },
+    {
+      "key": "createdProductId",
+      "value": ""
+    }
+  ]
+}
