@@ -23,7 +23,7 @@
                   "",
                   "pm.test(\"Token successfully created\", function () {",
                   "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.token).to.exist;",
+                  "    pm.expect(jsonData).to.have.property(\"token\");",
                   "});",
                   "",
                   "var response = pm.response.json();",
@@ -449,6 +449,20 @@
           ""
         ]
       }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_URL",
+      "value": "https://restful-booker.herokuapp.com"
+    },
+    {
+      "key": "booking_id",
+      "value": ""
+    },
+    {
+      "key": "auth_token",
+      "value": ""
     }
   ]
 }
